@@ -57,3 +57,29 @@
 		model.addObject("employees", Arrays.asList(employeeArray));
 		return model;
 	}
+@Configuration
+@EnableResourceServer
+public class ResourceSecurityConfiguration extends ResourceServerConfigurerAdapter {
+
+    @Override
+    public void configure(ResourceServerSecurityConfigurer resources)
+            throws Exception {
+        resources.resourceId("resource");
+    }
+
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+        http
+                .authorizeRequests().antMatchers("/foo", "/bar", "/hello", "/test").authenticated().
+                and().csrf().disable();
+    }
+
+    @Bean
+    public RemoteTokenServices LocalTokenService() {
+        final RemoteTokenServices tokenService = new RemoteTokenServices();
+        tokenService.setCheckTokenEndpointUrl("http://localhost:8081/oauth/check_token");
+        tokenService.setClientId("my-client");
+        tokenService.setClientSecret("mysecret");
+        return tokenService;
+    }
+}
