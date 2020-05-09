@@ -1,3 +1,17 @@
+<div id="addEmployee">
+		<form:form action="http://localhost:8080/oauth/authorize"
+			method="post" modelAttribute="emp">
+			<p>
+				<label>Enter Employee Id</label>
+				 <input type="text" name="response_type" value="code" /> 
+				 <input type="text" name="client_id" value="javainuse" />
+				 <input type="text" name="redirect_uri" value="http://localhost:8090/showEmployees" />
+				 <input type="text" name="scope" value="read" /> 
+				 <input type="SUBMIT" value="Get Employee info" />
+		</form:form>
+	</div>
+
+
 @RequestMapping(value = "/showEmployees", method = RequestMethod.GET )
 	public ModelAndView showEmployees(@RequestParam("code") String code) throws JsonProcessingException, IOException {
 		ResponseEntity<String> response = null;
