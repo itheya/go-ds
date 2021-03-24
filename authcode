@@ -83,3 +83,37 @@ public class ResourceSecurityConfiguration extends ResourceServerConfigurerAdapt
         return tokenService;
     }
 }
+
+
+
+In SSO configuration for Database,LDAP and Desktop login an additional checkbox on “Enable Two Factor Authentication” is available. Biometrics would be available as a radio button option along with MobiToken.
+If the radio button for Biometrics is selected, the textbox to enter Biometrics URL is displayed.
+SSO server side configuration (SSOServerConfig.conf) has a parameter named SSO_TFA_REQ which signifies whether SSO is two factor enabled.
+There will be a new parameter named SSO_TFA_TYPE in the Configuration to decide the kind of Two Factor Authentication enabled in SSO.
+If Mobi-Token is selected, the value of SSO_TFA_TYPE will be ‘M’ and if it’s Biometrics, the value will be ‘B’.
+There will be more entries into SSOServerConfig.conf, they are : 
+SSO_TWOFACTOR_STORE_OBJECT (name of the implementation class of Biometrics)
+SEL_TWOFACTOR_AUTH_PAGE(The URL that’s given at configuration time)
+USER_PROFILE Table contains a column named REQ_TWO_FACTOR_AUTH which can take values ‘Y’, ‘M’ or ‘N’ currently.
+If both SSO_TFA_REQ and SSO_TFA_TYPE are true and ‘B’ respectively, then SSO is Biometrics enabled and REQ_TWO_FACTOR_AUTH of user’s profile should have a value ‘B’.
+
+
+
+High Level Details
+SSO user is prompted a modal dialog and asked to swipe the finger in a finger print reader to get authenticated after successful user id and password authentication.
+The modal dialog for two factor login invoked by SSO will contain vendor specific Biometric capture and verify page.
+The modal dialog gives back a return code to SSO client which is sent to SSO server for verification. Upon successful verification of return code, the user is completely authenticated.  
+3.3.1.1 Low Level Details
+When the request goes to SSO server (SSOEngine) as part of Login, server puts a parameter corresponding to REQ_TWO_FACTOR_AUTH (retrieved from user’s profile) in the request.
+SSO client (SSOLoginApplet) gets the parameter REQ_TWO_FACTOR_AUTH from the response and stores the same.
+Once sso.js understands the value of isTwoFactorEnabled by calling the applet object, it invokes a modal dialog with the SSO Servlet url and calltype as GET_TWOFACTOR_AUTH_PAGE
+SSOServlet calls the Two Factor implementation class configured the specific type to get the actual URL. Class name could be either fetched from SSO configuration or decided based on type from SSO.properties file. 
+The URL related to the specific type gets formed inside the implementation class and SSOServlet redirects to the same.
+After the user swipes his/her finger, sso.js gets the return value from the Biometrics System (FPAG) 
+The return value is encrypted and sent to SSO Server through SSO applet.
+SSOServlet calls the isValidUser API in the Two Factor Interface class and verifies the return value. 
+In case of FPAG since there is no API provided to verify return codes, verification is done by checking the return value again pre known values. 
+success(return code:21) or failure(return code:27).
+If failure, isTFAComplete flag is set to false in sso session for that user and user is redirected to error page with error message put in response by Biometrics implementation. ErrorMessage  in case of FPAG will be “Fingerprint verification failed”. 
+If the verification is successful, isTFAComplete flag is set to true in session and success message is returned to applet.
+In all further calls from SSO client, SSO Server checks if the user’s session has isTFAComplete flag set to true and and if so, proceeds else error message is returned.
