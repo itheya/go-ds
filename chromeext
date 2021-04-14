@@ -1,0 +1,11 @@
+If you can't access Chrome Web Store, then the second best solution would be to compile the extension yourself if you are on Mac/Linux:
+
+Make sure you have Node.js version 8+ (node -v)
+Make sure you can run git from the command line (git --version)
+Git clone this repo OR download the latest release at https://github.com/facebook/react-devtools/releases
+Run npm install or yarn
+Run npm run build:extension:chrome, the extension will be compiled to shells/chrome/build/unpacked/
+Unfortunately, building the extension on Windows is a bit broken, you can either:
+
+Edit some files to fix it, see #908
+Or use this CRX that I have downloaded from the Store, extract the CRX with 7-Zip or another unzipper program, then delete the _metadata folder inside
